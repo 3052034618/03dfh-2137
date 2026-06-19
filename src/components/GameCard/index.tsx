@@ -12,8 +12,18 @@ interface GameCardProps {
 const GameCard: React.FC<GameCardProps> = ({ game, onClick }) => {
   const vacancy = game.totalPlayers - game.currentPlayers;
   const getMatchReasons = useGameStore((s) => s.getMatchReasons);
+  const filter = useGameStore((s) => s.filter);
   const reasons = useMemo(() => getMatchReasons(game), [game, getMatchReasons]);
   const hitReasons = reasons.filter((r) => r.hit);
+
+  const displayReasons = useMemo(() => {
+    if (filter.maxVacancy > 0) {
+      const soon = hitReasons.find((r) => r.key === 'soon');
+      const rest = hitReasons.filter((r) => r.key !== 'soon');
+      return soon ? [soon, ...rest] : hitReasons;
+    }
+    return hitReasons;
+  }, [hitReasons, filter.maxVacancy]);
 
   return (
     <View className={styles.card} onClick={() => onClick(game)}>
@@ -33,7 +43,7 @@ const GameCard: React.FC<GameCardProps> = ({ game, onClick }) => {
       <View className={styles.matchBox}>
         <Text className={styles.matchTitle}>匹配说明</Text>
         <View className={styles.matchList}>
-          {hitReasons.slice(0, 3).map((r) => (
+          {displayReasons.slice(0, 3).map((r) => (
             <View key={r.key} className={styles.matchItem}>
               <View className={styles.matchDot} />
               <Text className={styles.matchText}>{r.text}</Text>

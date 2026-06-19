@@ -230,10 +230,15 @@
   padding: 40rpx 0 20rpx;
 }
 
-.confirmedIcon {
+.statusIcon {
   font-size: 80rpx;
   margin-bottom: $spacing-lg;
   display: block;
+}
+
+.statusDesc {
+  font-size: $font-size-md;
+  color: $color-text-tertiary;
 }
 
 .confirmedTitle {
@@ -242,11 +247,6 @@
   color: $color-success;
   margin-bottom: $spacing-sm;
   display: block;
-}
-
-.confirmedDesc {
-  font-size: $font-size-md;
-  color: $color-text-tertiary;
 }
 
 .arrivedState {

@@ -11,9 +11,12 @@ const QueuePage: React.FC = () => {
 
   const [, tick] = useState(0);
   useEffect(() => {
-    const id = setInterval(() => tick((v) => v + 1), 1000);
+    const id = setInterval(() => {
+      tick((v) => v + 1);
+      store.checkAndExpireOverdue();
+    }, 1000);
     return () => clearInterval(id);
-  }, []);
+  }, [store]);
 
   useDidShow(() => {
     tick((v) => v + 1);
@@ -27,11 +30,13 @@ const QueuePage: React.FC = () => {
   const activeFirst = store.getFirstActiveConfirming();
   const activeCount = store.getActiveConfirmingCount();
 
+  const confirmingList = sortedQueues.filter(
+    (q) => q.status === 'confirming' && getConfirmRemaining(q) > 0
+  );
   const pendingList = sortedQueues.filter((q) => q.status === 'pending');
   const confirmedList = sortedQueues.filter((q) => q.status === 'confirmed');
-  const arrivedList = sortedQueues.filter((q) => q.status === 'arrived');
-  const othersList = sortedQueues.filter(
-    (q) => q.status === 'expired' || q.status === 'cancelled'
+  const historyList = sortedQueues.filter(
+    (q) => q.status === 'arrived' || q.status === 'expired' || q.status === 'cancelled'
   );
 
   const formatCD = (s: number) => {
@@ -75,7 +80,7 @@ const QueuePage: React.FC = () => {
 
     const statusMap: Record<string, { text: string; cls: string }> = {
       pending: { text: '排队中', cls: styles.statusPending },
-      confirming: { text: cd <= 0 ? '已过期' : '待确认', cls: cd <= 0 ? styles.statusExpired : styles.statusConfirming },
+      confirming: { text: '待确认', cls: styles.statusConfirming },
       confirmed: { text: '待赴约', cls: styles.statusConfirmed },
       arrived: { text: '已到店', cls: styles.statusArrived },
       expired: { text: '已过期', cls: styles.statusExpired },
@@ -176,12 +181,12 @@ const QueuePage: React.FC = () => {
                 Taro.navigateTo({ url: `/pages/confirm/index?id=${q.id}` });
               }}
             >
-              <Text className={styles.arriveBtnText}>查看赴约信息</Text>
+              <Text className={styles.arriveBtnText}>查看赴约信息 / 到店签到</Text>
             </View>
           </View>
         )}
 
-        {q.status === 'arrived' && (
+        {(q.status === 'arrived' || q.status === 'expired' || q.status === 'cancelled') && (
           <View className={styles.actionRow}>
             <View
               className={styles.detailBtn}
@@ -190,7 +195,9 @@ const QueuePage: React.FC = () => {
                 Taro.navigateTo({ url: `/pages/confirm/index?id=${q.id}` });
               }}
             >
-              <Text className={styles.detailBtnText}>查看详情</Text>
+              <Text className={styles.detailBtnText}>
+                {q.status === 'arrived' ? '查看赴约详情' : '查看详情'}
+              </Text>
             </View>
           </View>
         )}
@@ -219,25 +226,19 @@ const QueuePage: React.FC = () => {
         </View>
       )}
 
-      {/* 待确认列表 */}
-      {sortedQueues.filter((q) => q.status === 'confirming' && getConfirmRemaining(q) > 0).length > 0 && (
+      {confirmingList.length > 0 && (
         <View className={styles.section}>
           <View className={styles.sectionHead}>
             <Text className={styles.sectionLabel}>
               <View className={classnames(styles.sectionDot, styles.dotRed)} />
               待确认（紧急）
             </Text>
-            <Text className={styles.sectionCount}>
-              {sortedQueues.filter((q) => q.status === 'confirming' && getConfirmRemaining(q) > 0).length}条
-            </Text>
+            <Text className={styles.sectionCount}>{confirmingList.length}条</Text>
           </View>
-          {sortedQueues
-            .filter((q) => q.status === 'confirming' && getConfirmRemaining(q) > 0)
-            .map(renderCard)}
+          {confirmingList.map(renderCard)}
         </View>
       )}
 
-      {/* 排队中 */}
       {pendingList.length > 0 && (
         <View className={styles.section}>
           <View className={styles.sectionHead}>
@@ -251,7 +252,6 @@ const QueuePage: React.FC = () => {
         </View>
       )}
 
-      {/* 已确认 - 待赴约 */}
       {confirmedList.length > 0 && (
         <View className={styles.section}>
           <View className={styles.sectionHead}>
@@ -265,31 +265,16 @@ const QueuePage: React.FC = () => {
         </View>
       )}
 
-      {/* 已到店 */}
-      {arrivedList.length > 0 && (
-        <View className={styles.section}>
-          <View className={styles.sectionHead}>
-            <Text className={styles.sectionLabel}>
-              <View className={classnames(styles.sectionDot, styles.dotPurple)} />
-              已到店
-            </Text>
-            <Text className={styles.sectionCount}>{arrivedList.length}条</Text>
-          </View>
-          {arrivedList.map(renderCard)}
-        </View>
-      )}
-
-      {/* 历史记录 */}
-      {othersList.length > 0 && (
+      {historyList.length > 0 && (
         <View className={styles.section}>
           <View className={styles.sectionHead}>
             <Text className={styles.sectionLabel}>
               <View className={classnames(styles.sectionDot, styles.dotGrey)} />
               历史记录
             </Text>
-            <Text className={styles.sectionCount}>{othersList.length}条</Text>
+            <Text className={styles.sectionCount}>{historyList.length}条</Text>
           </View>
-          {othersList.map(renderCard)}
+          {historyList.map(renderCard)}
         </View>
       )}
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text } from '@tarojs/components';
 import Taro, { useRouter } from '@tarojs/taro';
 import { useGameStore, getConfirmRemaining } from '@/store/useGameStore';
@@ -17,10 +17,8 @@ const ConfirmPage: React.FC = () => {
     store.checkAndExpireOverdue();
   }, [router.params.id, store]);
 
-  // 订阅 store 变化
   const queue = useLiveQueue(store, queueId);
 
-  // 每秒强制刷新 + 自动过期检查
   const [, tick] = useState(0);
   useEffect(() => {
     const id = setInterval(() => {
@@ -34,7 +32,7 @@ const ConfirmPage: React.FC = () => {
     return (
       <View className={styles.page}>
         <View className={styles.card}>
-          <Text className={styles.infoValue}>未找到候补记录</Text>
+          <Text style={{ color: '#8E8EA0', textAlign: 'center' }}>未找到候补记录</Text>
         </View>
       </View>
     );
@@ -42,6 +40,11 @@ const ConfirmPage: React.FC = () => {
 
   const countdown = getConfirmRemaining(queue);
   const game = queue.game;
+  const companionCount = 1 + (queue.bringFriend ? queue.friendCount : 0);
+
+  const effectiveStatus = queue.status === 'confirming' && countdown <= 0
+    ? 'expired' as const
+    : queue.status;
 
   const formatCountdown = (seconds: number) => {
     const m = Math.floor(seconds / 60);
@@ -96,41 +99,32 @@ const ConfirmPage: React.FC = () => {
     });
   };
 
-  const companionCount = 1 + (queue.bringFriend ? queue.friendCount : 0);
-
-  // 已到店状态
-  if (queue.status === 'arrived') {
+  if (effectiveStatus === 'arrived') {
     return (
       <View className={styles.page}>
         <View className={styles.card}>
           <View className={styles.arrivedState}>
-            <Text className={styles.confirmedIcon}>✅</Text>
+            <Text className={styles.statusIcon}>✅</Text>
             <Text className={styles.arrivedTitle}>已到店</Text>
-            <Text className={styles.confirmedDesc}>
-              到店时间：{queue.arrivedAt}
-            </Text>
+            <Text className={styles.statusDesc}>到店时间：{queue.arrivedAt}</Text>
           </View>
         </View>
-
         <AppointmentInfo game={game} companionCount={companionCount} />
       </View>
     );
   }
 
-  // 已确认 - 赴约状态
-  if (queue.status === 'confirmed') {
+  if (effectiveStatus === 'confirmed') {
     return (
       <View className={styles.page}>
         <View className={styles.card}>
           <View className={styles.confirmedState}>
-            <Text className={styles.confirmedIcon}>🎉</Text>
+            <Text className={styles.statusIcon}>🎉</Text>
             <Text className={styles.confirmedTitle}>已确认上车！</Text>
-            <Text className={styles.confirmedDesc}>请准时到店，别鸽车哦～</Text>
+            <Text className={styles.statusDesc}>请准时到店，别鸽车哦～</Text>
           </View>
         </View>
-
         <AppointmentInfo game={game} companionCount={companionCount} />
-
         <View className={styles.bottomBar}>
           <View className={styles.arriveBtn} onClick={handleArrive}>
             <Text className={styles.arriveBtnText}>我已到店，点我签到</Text>
@@ -140,20 +134,19 @@ const ConfirmPage: React.FC = () => {
     );
   }
 
-  // 已过期 / 已放弃
-  if (queue.status === 'expired' || queue.status === 'cancelled') {
+  if (effectiveStatus === 'expired' || effectiveStatus === 'cancelled') {
     return (
       <View className={styles.page}>
         <View className={styles.card}>
           <View className={styles.expiredState}>
             <Text className={styles.expiredIcon}>
-              {queue.status === 'expired' ? '⏰' : '💨'}
+              {effectiveStatus === 'expired' ? '⏰' : '💨'}
             </Text>
             <Text className={styles.expiredTitle}>
-              {queue.status === 'expired' ? '已过期' : '已放弃'}
+              {effectiveStatus === 'expired' ? '已过期' : '已放弃'}
             </Text>
-            <Text className={styles.expiredDesc}>
-              {queue.status === 'expired' ? '超时未确认，下次早点哦～' : '已放弃本次上车'}
+            <Text className={styles.statusDesc}>
+              {effectiveStatus === 'expired' ? '超时未确认，下次早点哦～' : '已放弃本次上车'}
             </Text>
           </View>
         </View>
@@ -169,20 +162,89 @@ const ConfirmPage: React.FC = () => {
             <Text className={styles.infoValue}>{game.storeName} · {game.storeArea}</Text>
           </View>
           <View className={styles.infoRow}>
+            <Text className={styles.infoLabel}>门店地址</Text>
+            <Text className={styles.infoValue}>{game.storeAddress}</Text>
+          </View>
+          <View className={styles.infoRow}>
             <Text className={styles.infoLabel}>开本时间</Text>
             <Text className={styles.infoValue}>{game.expectedStartTime}</Text>
+          </View>
+          <View className={styles.infoRow}>
+            <Text className={styles.infoLabel}>DM</Text>
+            <Text className={styles.infoValue}>{game.dmName}（{game.dmContact}）</Text>
+          </View>
+          <View className={styles.infoRow}>
+            <Text className={styles.infoLabel}>缺口角色</Text>
+            <Text className={styles.infoValue}>{game.missingRoles.join('、')}</Text>
           </View>
         </View>
       </View>
     );
   }
 
-  // 待确认
+  if (effectiveStatus === 'pending') {
+    return (
+      <View className={styles.page}>
+        <View className={styles.card}>
+          <View className={styles.confirmedState}>
+            <Text className={styles.statusIcon}>📋</Text>
+            <Text className={styles.confirmedTitle}>排队中</Text>
+            <Text className={styles.statusDesc}>
+              差 {game.totalPlayers - game.currentPlayers} 人凑齐，请耐心等待
+            </Text>
+          </View>
+        </View>
+
+        <View className={styles.card}>
+          <Text className={styles.cardTitle}>车队信息</Text>
+          <View className={styles.infoRow}>
+            <Text className={styles.infoLabel}>剧本</Text>
+            <Text className={styles.infoValue}>{game.scriptName}</Text>
+          </View>
+          <View className={styles.infoRow}>
+            <Text className={styles.infoLabel}>门店</Text>
+            <Text className={styles.infoValue}>{game.storeName} · {game.storeArea}</Text>
+          </View>
+          <View className={styles.infoRow}>
+            <Text className={styles.infoLabel}>开本时间</Text>
+            <Text className={styles.infoValue}>{game.expectedStartTime}</Text>
+          </View>
+          <View className={styles.infoRow}>
+            <Text className={styles.infoLabel}>DM</Text>
+            <Text className={styles.infoValue}>{game.dmName}</Text>
+          </View>
+        </View>
+
+        <View className={styles.card}>
+          <Text className={styles.cardTitle}>我的信息</Text>
+          <View className={styles.infoRow}>
+            <Text className={styles.infoLabel}>称呼</Text>
+            <Text className={styles.infoValue}>{queue.nickname}</Text>
+          </View>
+          {queue.bringFriend && (
+            <View className={styles.infoRow}>
+              <Text className={styles.infoLabel}>带朋友</Text>
+              <Text className={styles.infoValue}>{queue.friendCount}位</Text>
+            </View>
+          )}
+        </View>
+
+        <View className={styles.bottomBar}>
+          <View className={styles.giveUpBtn} onClick={handleGiveUp}>
+            <Text className={styles.giveUpBtnText}>取消排队</Text>
+          </View>
+        </View>
+      </View>
+    );
+  }
+
+  // confirming（有倒计时）
+  const isUrgent = countdown <= 60;
   return (
     <View className={styles.page}>
-      <View className={countdown <= 60 ? styles.countdownHeroUrgent : styles.countdownHero}>
+      <View className={isUrgent ? styles.countdownHeroUrgent : styles.countdownHero}>
         <Text className={styles.countdownLabel}>
-          {countdown <= 60 ? '⚠️ 马上过期！请立即确认' : '请在倒计时内确认上车'}
+          {isUrgent ? '⚠️ 马上过期！请立即确认' : '请在倒计时内确认上车'}
         </Text>
         <Text className={styles.countdownTime}>{formatCountdown(countdown)}</Text>
         <Text className={styles.countdownUnit}>超时将自动放弃</Text>
