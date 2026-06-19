@@ -63,6 +63,90 @@
   margin-bottom: $spacing-md;
 }
 
+.matchCardHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-md;
+}
+
+.matchScore {
+  display: flex;
+  align-items: baseline;
+}
+
+.matchScoreValue {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: $color-success;
+  margin-right: $spacing-xs;
+}
+
+.matchScoreLabel {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+.matchList {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.matchItem {
+  display: flex;
+  align-items: flex-start;
+  padding: $spacing-sm $spacing-md;
+  border-radius: $radius-sm;
+  background: $color-bg-page;
+}
+
+.matchIcon {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: $spacing-md;
+  flex-shrink: 0;
+  margin-top: 2rpx;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-bold;
+}
+
+.matchIconHit {
+  background: $color-tag-green-bg;
+  color: $color-tag-green-text;
+}
+
+.matchIconMiss {
+  background: $color-bg-hover;
+  color: $color-text-disabled;
+}
+
+.matchItemBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.matchItemLabel {
+  font-size: 22rpx;
+  color: $color-text-tertiary;
+  margin-bottom: 2rpx;
+  display: block;
+}
+
+.matchItemText {
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  line-height: 1.4;
+}
+
+.matchItemTextMiss {
+  color: $color-text-tertiary;
+}
+
 .infoRow {
   display: flex;
   align-items: center;

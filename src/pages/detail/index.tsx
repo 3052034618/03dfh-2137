@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text } from '@tarojs/components';
 import Taro, { useRouter } from '@tarojs/taro';
 import classnames from 'classnames';
@@ -7,7 +7,7 @@ import styles from './index.module.scss';
 
 const DetailPage: React.FC = () => {
   const router = useRouter();
-  const { getGameById } = useGameStore();
+  const { getGameById, getMatchReasons } = useGameStore();
   const [gameId, setGameId] = useState('');
 
   useEffect(() => {
@@ -17,6 +17,7 @@ const DetailPage: React.FC = () => {
   }, [router.params.id]);
 
   const game = getGameById(gameId);
+  const matchReasons = useMemo(() => (game ? getMatchReasons(game) : []), [game, getMatchReasons]);
 
   if (!game) {
     return (
@@ -70,6 +71,33 @@ const DetailPage: React.FC = () => {
           <View className={styles.infoRow}>
             <Text className={styles.infoLabel}>预计开本</Text>
             <Text className={styles.infoValue}>{game.expectedStartTime}</Text>
+          </View>
+        </View>
+
+        <View className={styles.card}>
+          <View className={styles.matchCardHead}>
+            <Text className={styles.cardTitle}>为什么推荐给我</Text>
+            <View className={styles.matchScore}>
+              <Text className={styles.matchScoreValue}>
+                {matchReasons.filter((r) => r.hit).length}/{matchReasons.length}
+              </Text>
+              <Text className={styles.matchScoreLabel}>匹配</Text>
+            </View>
+          </View>
+          <View className={styles.matchList}>
+            {matchReasons.map((r) => (
+              <View key={r.key} className={styles.matchItem}>
+                <View className={classnames(styles.matchIcon, r.hit ? styles.matchIconHit : styles.matchIconMiss)}>
+                  <Text>{r.hit ? '✓' : '×'}</Text>
+                </View>
+                <View className={styles.matchItemBody}>
+                  <Text className={styles.matchItemLabel}>{r.label}</Text>
+                  <Text className={classnames(styles.matchItemText, !r.hit && styles.matchItemTextMiss)}>
+                    {r.text}
+                  </Text>
+                </View>
+              </View>
+            ))}
           </View>
         </View>
 

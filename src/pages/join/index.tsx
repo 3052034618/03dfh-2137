@@ -31,14 +31,22 @@ const JoinPage: React.FC = () => {
       return;
     }
 
-    joinQueue(gameId, nickname.trim(), contact.trim(), bringFriend, bringFriend ? friendCount : 0);
+    const newQueue = joinQueue(gameId, nickname.trim(), contact.trim(), bringFriend, bringFriend ? friendCount : 0);
     console.info('[Join] Submitted:', nickname, contact, bringFriend ? `+${friendCount}友` : '');
 
-    Taro.showToast({ title: '已加入候补队列！', icon: 'success' });
-
-    setTimeout(() => {
-      Taro.switchTab({ url: '/pages/queue/index' });
-    }, 1500);
+    if (newQueue) {
+      if (newQueue.status === 'confirming') {
+        Taro.showToast({ title: '刚好补齐！请尽快确认', icon: 'none' });
+        setTimeout(() => {
+          Taro.redirectTo({ url: `/pages/confirm/index?id=${newQueue.id}` });
+        }, 1000);
+      } else {
+        Taro.showToast({ title: '已加入候补队列！', icon: 'success' });
+        setTimeout(() => {
+          Taro.switchTab({ url: '/pages/queue/index' });
+        }, 1500);
+      }
+    }
   };
 
   if (!game) {

@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, Image } from '@tarojs/components';
 import { Game } from '@/types/game';
+import { useGameStore, MatchReason } from '@/store/useGameStore';
 import styles from './index.module.scss';
 
 interface GameCardProps {
@@ -10,6 +11,9 @@ interface GameCardProps {
 
 const GameCard: React.FC<GameCardProps> = ({ game, onClick }) => {
   const vacancy = game.totalPlayers - game.currentPlayers;
+  const getMatchReasons = useGameStore((s) => s.getMatchReasons);
+  const reasons = useMemo(() => getMatchReasons(game), [game, getMatchReasons]);
+  const hitReasons = reasons.filter((r) => r.hit);
 
   return (
     <View className={styles.card} onClick={() => onClick(game)}>
@@ -23,6 +27,18 @@ const GameCard: React.FC<GameCardProps> = ({ game, onClick }) => {
               <Text key={tag} className={styles.tag}>{tag}</Text>
             ))}
           </View>
+        </View>
+      </View>
+
+      <View className={styles.matchBox}>
+        <Text className={styles.matchTitle}>匹配说明</Text>
+        <View className={styles.matchList}>
+          {hitReasons.slice(0, 3).map((r) => (
+            <View key={r.key} className={styles.matchItem}>
+              <View className={styles.matchDot} />
+              <Text className={styles.matchText}>{r.text}</Text>
+            </View>
+          ))}
         </View>
       </View>
 

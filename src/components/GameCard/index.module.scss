@@ -66,6 +66,49 @@
   white-space: nowrap;
 }
 
+.matchBox {
+  margin: 0 $spacing-lg;
+  margin-bottom: $spacing-md;
+  padding: $spacing-sm $spacing-md;
+  background: $color-tag-green-bg;
+  border-radius: $radius-sm;
+  border-left: 6rpx solid $color-success;
+}
+
+.matchTitle {
+  font-size: 22rpx;
+  color: $color-tag-green-text;
+  font-weight: $font-weight-medium;
+  margin-bottom: 4rpx;
+  display: block;
+}
+
+.matchList {
+  display: flex;
+  flex-direction: column;
+  gap: 2rpx;
+}
+
+.matchItem {
+  display: flex;
+  align-items: center;
+}
+
+.matchDot {
+  width: 8rpx;
+  height: 8rpx;
+  border-radius: 50%;
+  background: $color-success;
+  margin-right: $spacing-xs;
+  flex-shrink: 0;
+}
+
+.matchText {
+  font-size: 22rpx;
+  color: $color-tag-green-text;
+  line-height: 1.5;
+}
+
 .body {
   padding: 0 $spacing-lg;
   padding-bottom: $spacing-md;

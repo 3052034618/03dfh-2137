@@ -7,6 +7,15 @@
   padding-bottom: 200rpx;
 }
 
+.countdownHeroUrgent {
+  background: linear-gradient(135deg, $color-error 0%, #ff7875 100%);
+  border-radius: $radius-lg;
+  padding: $spacing-xl $spacing-lg;
+  margin-bottom: $spacing-lg;
+  text-align: center;
+  color: $color-text-white;
+}
+
 .countdownHero {
   background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
   border-radius: $radius-lg;
@@ -169,6 +178,12 @@
 .expiredState {
   text-align: center;
   padding: 80rpx 0;
+}
+
+.expiredIcon {
+  font-size: 80rpx;
+  margin-bottom: $spacing-lg;
+  display: block;
 }
 
 .expiredTitle {
