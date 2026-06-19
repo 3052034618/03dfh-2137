@@ -1,0 +1,76 @@
+@use '@/styles/variables.scss' as *;
+
+.page {
+  min-height: 100vh;
+  background: $color-bg-page;
+}
+
+.hero {
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+  padding: $spacing-lg;
+  padding-top: $spacing-xl;
+  padding-bottom: $spacing-xl;
+  color: $color-text-white;
+}
+
+.heroTitle {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  margin-bottom: $spacing-xs;
+}
+
+.heroSubtitle {
+  font-size: $font-size-sm;
+  opacity: 0.85;
+}
+
+.filterSection {
+  background: $color-bg-card;
+  border-radius: $radius-lg $radius-lg 0 0;
+  margin-top: -$spacing-lg;
+  position: relative;
+  z-index: 1;
+  box-shadow: $shadow-float;
+}
+
+.gameSection {
+  padding: $spacing-lg;
+  padding-top: $spacing-md;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-md;
+}
+
+.sectionTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.resultCount {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 120rpx 0;
+}
+
+.emptyText {
+  font-size: $font-size-md;
+  color: $color-text-tertiary;
+  margin-bottom: $spacing-sm;
+}
+
+.emptySub {
+  font-size: $font-size-sm;
+  color: $color-text-disabled;
+}

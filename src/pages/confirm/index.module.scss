@@ -1,0 +1,185 @@
+@use '@/styles/variables.scss' as *;
+
+.page {
+  min-height: 100vh;
+  background: $color-bg-page;
+  padding: $spacing-lg;
+  padding-bottom: 200rpx;
+}
+
+.countdownHero {
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+  border-radius: $radius-lg;
+  padding: $spacing-xl $spacing-lg;
+  margin-bottom: $spacing-lg;
+  text-align: center;
+  color: $color-text-white;
+}
+
+.countdownLabel {
+  font-size: $font-size-md;
+  opacity: 0.9;
+  margin-bottom: $spacing-sm;
+  display: block;
+}
+
+.countdownTime {
+  font-size: 80rpx;
+  font-weight: $font-weight-bold;
+  letter-spacing: 4rpx;
+  display: block;
+}
+
+.countdownUnit {
+  font-size: $font-size-md;
+  opacity: 0.8;
+  margin-top: $spacing-sm;
+  display: block;
+}
+
+.card {
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-card;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-md;
+}
+
+.cardTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-md;
+}
+
+.infoRow {
+  display: flex;
+  align-items: center;
+  margin-bottom: $spacing-md;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.infoLabel {
+  font-size: $font-size-md;
+  color: $color-text-tertiary;
+  width: 160rpx;
+  flex-shrink: 0;
+}
+
+.infoValue {
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  flex: 1;
+}
+
+.warningBox {
+  background: $color-tag-orange-bg;
+  border-radius: $radius-md;
+  padding: $spacing-md;
+  border-left: 8rpx solid $color-primary;
+  margin-bottom: $spacing-lg;
+}
+
+.warningText {
+  font-size: $font-size-sm;
+  color: $color-tag-orange-text;
+  line-height: $line-height-loose;
+}
+
+.bottomBar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: $color-bg-card;
+  padding: $spacing-md $spacing-lg;
+  padding-bottom: calc(#{$spacing-md} + env(safe-area-inset-bottom));
+  box-shadow: $shadow-float;
+  display: flex;
+  gap: $spacing-md;
+  z-index: 10;
+}
+
+.giveUpBtn {
+  @include button-reset;
+  flex: 1;
+  height: $button-height-lg;
+  border-radius: $radius-round;
+  border: 1rpx solid $color-border;
+  background: $color-bg-card;
+
+  &:active {
+    opacity: 0.8;
+  }
+}
+
+.giveUpBtnText {
+  font-size: $font-size-md;
+  color: $color-text-secondary;
+  white-space: nowrap;
+}
+
+.confirmBtn {
+  @include button-reset;
+  flex: 2;
+  height: $button-height-lg;
+  border-radius: $radius-round;
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+
+  &:active {
+    opacity: 0.9;
+    transform: scale(0.98);
+  }
+}
+
+.confirmBtnText {
+  font-size: $font-size-lg;
+  color: $color-text-white;
+  font-weight: $font-weight-semibold;
+  white-space: nowrap;
+}
+
+.confirmedState {
+  text-align: center;
+  padding: 80rpx 0;
+}
+
+.confirmedIcon {
+  font-size: 80rpx;
+  margin-bottom: $spacing-lg;
+  display: block;
+}
+
+.confirmedTitle {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  color: $color-success;
+  margin-bottom: $spacing-sm;
+  display: block;
+}
+
+.confirmedDesc {
+  font-size: $font-size-md;
+  color: $color-text-tertiary;
+}
+
+.expiredState {
+  text-align: center;
+  padding: 80rpx 0;
+}
+
+.expiredTitle {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  color: $color-text-disabled;
+  margin-bottom: $spacing-sm;
+  display: block;
+}
+
+.expiredDesc {
+  font-size: $font-size-md;
+  color: $color-text-tertiary;
+}

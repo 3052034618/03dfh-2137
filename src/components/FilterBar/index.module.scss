@@ -1,0 +1,79 @@
+@use '@/styles/variables.scss' as *;
+
+.wrapper {
+  padding: $spacing-lg;
+  padding-bottom: $spacing-sm;
+}
+
+.filterRow {
+  margin-bottom: $spacing-sm;
+}
+
+.scrollView {
+  width: 100%;
+  white-space: nowrap;
+}
+
+.pillRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+}
+
+.pill {
+  font-size: $font-size-sm;
+  padding: 8rpx 24rpx;
+  border-radius: $radius-round;
+  background: $color-bg-card;
+  color: $color-text-secondary;
+  white-space: nowrap;
+  border: 1rpx solid $color-border;
+  transition: all $transition-fast;
+
+  &:active {
+    opacity: 0.8;
+  }
+}
+
+.pillActive {
+  background: $color-tag-orange-bg;
+  color: $color-primary-dark;
+  border-color: $color-primary;
+  font-weight: $font-weight-medium;
+}
+
+.preferenceSection {
+  margin-top: $spacing-md;
+  padding-top: $spacing-md;
+  border-top: 1rpx solid $color-divider;
+}
+
+.sectionTitle {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  margin-bottom: $spacing-sm;
+  display: block;
+}
+
+.prefPill {
+  font-size: $font-size-sm;
+  padding: 12rpx 28rpx;
+  border-radius: $radius-round;
+  background: $color-bg-card;
+  color: $color-text-secondary;
+  white-space: nowrap;
+  border: 2rpx dashed $color-border;
+  transition: all $transition-fast;
+
+  &:active {
+    opacity: 0.8;
+  }
+}
+
+.prefPillActive {
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+  color: $color-text-white;
+  border-color: $color-primary;
+  border-style: solid;
+  font-weight: $font-weight-medium;
+}

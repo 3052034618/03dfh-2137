@@ -1,0 +1,149 @@
+@use '@/styles/variables.scss' as *;
+
+.card {
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-card;
+  overflow: hidden;
+  margin-bottom: $spacing-md;
+  padding: $spacing-lg;
+  transition: all $transition-base;
+
+  &:active {
+    opacity: 0.95;
+    transform: scale(0.99);
+  }
+}
+
+.header {
+  margin-bottom: $spacing-md;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-xs;
+}
+
+.scriptName {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  flex: 1;
+  @include text-ellipsis;
+  margin-right: $spacing-sm;
+}
+
+.statusBadge {
+  font-size: 20rpx;
+  padding: 4rpx 16rpx;
+  border-radius: $radius-round;
+  white-space: nowrap;
+  font-weight: $font-weight-medium;
+}
+
+.statusPending {
+  background: $color-tag-blue-bg;
+  color: $color-tag-blue-text;
+}
+
+.statusConfirming {
+  background: $color-tag-orange-bg;
+  color: $color-tag-orange-text;
+}
+
+.statusConfirmed {
+  background: $color-tag-green-bg;
+  color: $color-tag-green-text;
+}
+
+.statusExpired {
+  background: $color-bg-hover;
+  color: $color-text-disabled;
+}
+
+.statusCancelled {
+  background: $color-bg-hover;
+  color: $color-text-disabled;
+}
+
+.storeInfo {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+.body {
+  margin-bottom: $spacing-sm;
+}
+
+.infoRow {
+  display: flex;
+  align-items: center;
+  margin-bottom: $spacing-xs;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.label {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  width: 140rpx;
+  flex-shrink: 0;
+}
+
+.value {
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  flex: 1;
+  @include text-ellipsis;
+}
+
+.actionRow {
+  display: flex;
+  gap: $spacing-md;
+  margin-top: $spacing-md;
+  padding-top: $spacing-md;
+  border-top: 1rpx solid $color-divider;
+}
+
+.cancelBtn {
+  @include button-reset;
+  flex: 1;
+  height: $button-height-sm;
+  border-radius: $radius-round;
+  border: 1rpx solid $color-border;
+  background: $color-bg-card;
+
+  &:active {
+    opacity: 0.8;
+  }
+}
+
+.cancelBtnText {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  white-space: nowrap;
+}
+
+.confirmBtn {
+  @include button-reset;
+  flex: 1;
+  height: $button-height-sm;
+  border-radius: $radius-round;
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+
+  &:active {
+    opacity: 0.9;
+    transform: scale(0.98);
+  }
+}
+
+.confirmBtnText {
+  font-size: $font-size-sm;
+  color: $color-text-white;
+  font-weight: $font-weight-medium;
+  white-space: nowrap;
+}

@@ -1,0 +1,196 @@
+@use '@/styles/variables.scss' as *;
+
+.page {
+  min-height: 100vh;
+  background: $color-bg-page;
+  padding-bottom: 180rpx;
+}
+
+.hero {
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+  padding: $spacing-lg;
+  padding-bottom: $spacing-xl;
+  color: $color-text-white;
+}
+
+.scriptName {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  margin-bottom: $spacing-sm;
+  display: block;
+}
+
+.storeInfo {
+  font-size: $font-size-md;
+  opacity: 0.9;
+  margin-bottom: $spacing-xs;
+  display: block;
+}
+
+.tagRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+  margin-top: $spacing-sm;
+}
+
+.heroTag {
+  font-size: 20rpx;
+  padding: 4rpx 16rpx;
+  border-radius: $radius-round;
+  background: rgba(255, 255, 255, 0.2);
+  color: $color-text-white;
+  white-space: nowrap;
+}
+
+.content {
+  padding: $spacing-lg;
+  margin-top: -$spacing-md;
+}
+
+.card {
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-card;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-md;
+}
+
+.cardTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-md;
+}
+
+.infoRow {
+  display: flex;
+  align-items: center;
+  margin-bottom: $spacing-md;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.infoLabel {
+  font-size: $font-size-md;
+  color: $color-text-tertiary;
+  width: 160rpx;
+  flex-shrink: 0;
+}
+
+.infoValue {
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  flex: 1;
+}
+
+.priceHighlight {
+  color: $color-price;
+  font-weight: $font-weight-bold;
+  font-size: $font-size-lg;
+}
+
+.slotsWrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+}
+
+.slot {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: $radius-round;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+}
+
+.slotFilled {
+  background: $color-tag-green-bg;
+  color: $color-tag-green-text;
+}
+
+.slotEmpty {
+  background: $color-tag-orange-bg;
+  color: $color-tag-orange-text;
+  border: 2rpx dashed $color-primary;
+}
+
+.dmTipBox {
+  background: $color-tag-yellow-bg;
+  border-radius: $radius-md;
+  padding: $spacing-md;
+  border-left: 8rpx solid $color-warning;
+}
+
+.dmName {
+  font-size: $font-size-sm;
+  color: $color-tag-yellow-text;
+  font-weight: $font-weight-medium;
+  margin-bottom: $spacing-xs;
+  display: block;
+}
+
+.dmContent {
+  font-size: $font-size-md;
+  color: $color-text-secondary;
+  line-height: $line-height-loose;
+}
+
+.descText {
+  font-size: $font-size-md;
+  color: $color-text-secondary;
+  line-height: $line-height-loose;
+}
+
+.bottomBar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: $color-bg-card;
+  padding: $spacing-md $spacing-lg;
+  padding-bottom: calc(#{$spacing-md} + env(safe-area-inset-bottom));
+  box-shadow: $shadow-float;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 10;
+}
+
+.bottomPrice {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: $color-price;
+}
+
+.bottomPriceUnit {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  font-weight: $font-weight-normal;
+}
+
+.joinBtn {
+  @include button-reset;
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+  border-radius: $radius-round;
+  height: $button-height-lg;
+  padding: 0 64rpx;
+  min-width: 320rpx;
+
+  &:active {
+    opacity: 0.9;
+    transform: scale(0.98);
+  }
+}
+
+.joinBtnText {
+  font-size: $font-size-lg;
+  color: $color-text-white;
+  font-weight: $font-weight-semibold;
+  white-space: nowrap;
+}
