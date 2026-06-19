@@ -72,6 +72,14 @@ const DetailPage: React.FC = () => {
             <Text className={styles.infoLabel}>预计开本</Text>
             <Text className={styles.infoValue}>{game.expectedStartTime}</Text>
           </View>
+          <View className={styles.infoRow}>
+            <Text className={styles.infoLabel}>门店地址</Text>
+            <Text className={styles.infoValue}>{game.storeAddress}</Text>
+          </View>
+          <View className={styles.infoRow}>
+            <Text className={styles.infoLabel}>DM</Text>
+            <Text className={styles.infoValue}>{game.dmName}（{game.dmContact}）</Text>
+          </View>
         </View>
 
         <View className={styles.card}>

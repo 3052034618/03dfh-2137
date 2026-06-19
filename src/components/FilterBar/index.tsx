@@ -9,24 +9,35 @@ interface FilterBarProps {
   arriveTime: string;
   priceRange: string;
   acceptBeginner: boolean;
+  maxVacancy: number;
   preferences: PreferenceKey[];
   onAreaChange: (area: string) => void;
   onTimeChange: (time: string) => void;
   onPriceChange: (price: string) => void;
   onBeginnerChange: (val: boolean) => void;
+  onMaxVacancyChange: (val: number) => void;
   onPreferenceToggle: (key: PreferenceKey) => void;
 }
+
+const SOON_OPTIONS: { value: number; label: string }[] = [
+  { value: 0, label: '不限' },
+  { value: 1, label: '缺1人' },
+  { value: 2, label: '缺2人内' },
+  { value: 3, label: '缺3人内' }
+];
 
 const FilterBar: React.FC<FilterBarProps> = ({
   area,
   arriveTime,
   priceRange,
   acceptBeginner,
+  maxVacancy,
   preferences,
   onAreaChange,
   onTimeChange,
   onPriceChange,
   onBeginnerChange,
+  onMaxVacancyChange,
   onPreferenceToggle
 }) => {
   return (
@@ -89,6 +100,15 @@ const FilterBar: React.FC<FilterBarProps> = ({
           >
             新手友好
           </Text>
+          {SOON_OPTIONS.map((opt) => (
+            <Text
+              key={opt.value}
+              className={classnames(styles.pill, styles.soonPill, maxVacancy === opt.value && styles.pillActive)}
+              onClick={() => onMaxVacancyChange(opt.value)}
+            >
+              {opt.label}
+            </Text>
+          ))}
         </View>
       </View>
 

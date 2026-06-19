@@ -2,6 +2,7 @@ export interface Game {
   id: string;
   storeName: string;
   storeArea: string;
+  storeAddress: string;
   scriptName: string;
   scriptType: string[];
   pricePerPerson: number;
@@ -10,6 +11,7 @@ export interface Game {
   missingRoles: string[];
   expectedStartTime: string;
   dmName: string;
+  dmContact: string;
   dmTip: string;
   acceptBeginner: boolean;
   tags: string[];
@@ -23,13 +25,14 @@ export interface QueueEntry {
   id: string;
   gameId: string;
   game: Game;
-  status: 'pending' | 'confirming' | 'confirmed' | 'expired' | 'cancelled';
+  status: 'pending' | 'confirming' | 'confirmed' | 'arrived' | 'expired' | 'cancelled';
   nickname: string;
   contact: string;
   bringFriend: boolean;
   friendCount: number;
   createdAt: string;
   confirmDeadline: string;
+  arrivedAt: string;
 }
 
 export interface GameFilter {
@@ -38,6 +41,7 @@ export interface GameFilter {
   priceRange: string;
   acceptBeginner: boolean;
   preferences: string[];
+  maxVacancy: number;
 }
 
 export type PreferenceKey = 'camp' | 'rpg' | 'fun' | 'reasoning';

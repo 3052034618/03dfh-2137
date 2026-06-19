@@ -120,9 +120,7 @@
   border: 1rpx solid $color-border;
   background: $color-bg-card;
 
-  &:active {
-    opacity: 0.8;
-  }
+  &:active { opacity: 0.8; }
 }
 
 .giveUpBtnText {
@@ -151,9 +149,85 @@
   white-space: nowrap;
 }
 
+.arriveBtn {
+  @include button-reset;
+  width: 100%;
+  height: $button-height-lg;
+  border-radius: $radius-round;
+  background: linear-gradient(135deg, $color-success 0%, #25c04d 100%);
+
+  &:active {
+    opacity: 0.9;
+    transform: scale(0.98);
+  }
+}
+
+.arriveBtnText {
+  font-size: $font-size-lg;
+  color: $color-text-white;
+  font-weight: $font-weight-semibold;
+  white-space: nowrap;
+}
+
+.appointmentItem {
+  display: flex;
+  align-items: flex-start;
+  padding: $spacing-md 0;
+  border-bottom: 1rpx solid $color-divider;
+
+  &:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  &:first-child {
+    padding-top: 0;
+  }
+}
+
+.appointmentIcon {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: $radius-md;
+  background: $color-tag-orange-bg;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-size-lg;
+  margin-right: $spacing-md;
+  flex-shrink: 0;
+}
+
+.appointmentBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.appointmentLabel {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  margin-bottom: 4rpx;
+  display: block;
+}
+
+.appointmentValue {
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  font-weight: $font-weight-medium;
+  margin-bottom: 2rpx;
+  display: block;
+}
+
+.appointmentSub {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  line-height: 1.4;
+  display: block;
+}
+
 .confirmedState {
   text-align: center;
-  padding: 80rpx 0;
+  padding: 40rpx 0 20rpx;
 }
 
 .confirmedIcon {
@@ -173,6 +247,19 @@
 .confirmedDesc {
   font-size: $font-size-md;
   color: $color-text-tertiary;
+}
+
+.arrivedState {
+  text-align: center;
+  padding: 40rpx 0 20rpx;
+}
+
+.arrivedTitle {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  color: $color-success;
+  margin-bottom: $spacing-sm;
+  display: block;
 }
 
 .expiredState {

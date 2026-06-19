@@ -89,6 +89,7 @@
 .dotRed { background: $color-error; }
 .dotBlue { background: $color-info; }
 .dotGreen { background: $color-success; }
+.dotPurple { background: $color-tag-purple-text; }
 .dotGrey { background: $color-text-disabled; }
 
 .sectionCount {
@@ -147,6 +148,7 @@
 .statusPending { background: $color-tag-blue-bg; color: $color-tag-blue-text; }
 .statusConfirming { background: $color-tag-orange-bg; color: $color-tag-orange-text; }
 .statusConfirmed { background: $color-tag-green-bg; color: $color-tag-green-text; }
+.statusArrived { background: $color-tag-purple-bg; color: $color-tag-purple-text; }
 .statusExpired { background: $color-bg-hover; color: $color-text-disabled; }
 .statusCancelled { background: $color-bg-hover; color: $color-text-disabled; }
 
@@ -174,8 +176,12 @@
 .urgentCountdown {
   font-size: $font-size-lg;
   font-weight: $font-weight-bold;
-  color: $color-error;
+  color: $color-primary;
   letter-spacing: 1rpx;
+}
+
+.urgentCountdownDanger {
+  color: $color-error;
 }
 
 .body {
@@ -247,6 +253,43 @@
 .confirmBtnText {
   font-size: $font-size-sm;
   color: $color-text-white;
+  font-weight: $font-weight-medium;
+  white-space: nowrap;
+}
+
+.arriveBtn {
+  @include button-reset;
+  flex: 1;
+  height: $button-height-sm;
+  border-radius: $radius-round;
+  background: linear-gradient(135deg, $color-success 0%, #25c04d 100%);
+
+  &:active {
+    opacity: 0.9;
+    transform: scale(0.98);
+  }
+}
+
+.arriveBtnText {
+  font-size: $font-size-sm;
+  color: $color-text-white;
+  font-weight: $font-weight-medium;
+  white-space: nowrap;
+}
+
+.detailBtn {
+  @include button-reset;
+  flex: 1;
+  height: $button-height-sm;
+  border-radius: $radius-round;
+  background: $color-tag-purple-bg;
+
+  &:active { opacity: 0.8; }
+}
+
+.detailBtnText {
+  font-size: $font-size-sm;
+  color: $color-tag-purple-text;
   font-weight: $font-weight-medium;
   white-space: nowrap;
 }

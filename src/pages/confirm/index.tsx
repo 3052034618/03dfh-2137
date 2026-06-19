@@ -1,60 +1,34 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text } from '@tarojs/components';
 import Taro, { useRouter } from '@tarojs/taro';
-import { useGameStore } from '@/store/useGameStore';
+import { useGameStore, getConfirmRemaining } from '@/store/useGameStore';
+import { QueueEntry } from '@/types/game';
 import styles from './index.module.scss';
-
-const CONFIRM_DURATION_SECONDS = 300;
-
-const nowPlusSeconds = (sec: number) => {
-  const t = new Date();
-  t.setSeconds(t.getSeconds() + sec);
-  return t;
-};
 
 const ConfirmPage: React.FC = () => {
   const router = useRouter();
-  const queueStore = useGameStore();
-  const { getQueueById, confirmQueue, cancelQueue, expireQueue } = queueStore;
+  const store = useGameStore();
   const [queueId, setQueueId] = useState('');
 
   useEffect(() => {
     const id = router.params.id || '';
     setQueueId(id);
     console.info('[Confirm] Queue ID:', id);
-  }, [router.params.id]);
+    store.checkAndExpireOverdue();
+  }, [router.params.id, store]);
 
-  // 每次队列变化时从 store 中取最新引用
-  const queueRef = useQueueLive(queueStore, queueId);
-  const queue = queueRef.current;
+  // 订阅 store 变化
+  const queue = useLiveQueue(store, queueId);
 
-  // 倒计时真实计算：基于确认截止时间，和系统时间对比，不会因为页面切换而重置
-  const [, forceTick] = useState(0);
+  // 每秒强制刷新 + 自动过期检查
+  const [, tick] = useState(0);
   useEffect(() => {
-    const id = setInterval(() => forceTick((v) => v + 1), 1000);
+    const id = setInterval(() => {
+      tick((v) => v + 1);
+      store.checkAndExpireOverdue();
+    }, 1000);
     return () => clearInterval(id);
-  }, []);
-
-  const countdown = useMemo(() => {
-    if (!queue || queue.status !== 'confirming') return 0;
-    const deadline = queue.confirmDeadline
-      ? new Date(queue.confirmDeadline.replace(/\//g, '-'))
-      : nowPlusSeconds(CONFIRM_DURATION_SECONDS);
-    const remain = Math.max(0, Math.floor((deadline.getTime() - Date.now()) / 1000));
-    return remain;
-  }, [queue, queue?.confirmDeadline, queue?.status, queueId]);
-
-  // 倒计时归零时自动置为已过期（只触发一次）
-  const expiredRef = useRef(false);
-  useEffect(() => {
-    if (!queue || queue.status !== 'confirming' || expiredRef.current) return;
-    if (countdown <= 0) {
-      expiredRef.current = true;
-      expireQueue(queue.id);
-      console.warn('[Confirm] Time expired, auto expire queue:', queue.id);
-      Taro.showToast({ title: '已超时，自动放弃', icon: 'none' });
-    }
-  }, [countdown, queue, expireQueue]);
+  }, [store]);
 
   if (!queue) {
     return (
@@ -66,6 +40,7 @@ const ConfirmPage: React.FC = () => {
     );
   }
 
+  const countdown = getConfirmRemaining(queue);
   const game = queue.game;
 
   const formatCountdown = (seconds: number) => {
@@ -75,11 +50,11 @@ const ConfirmPage: React.FC = () => {
   };
 
   const handleConfirm = () => {
-    if (queue.status !== 'confirming') {
-      Taro.showToast({ title: '该记录已无法操作', icon: 'none' });
+    if (queue.status !== 'confirming' || countdown <= 0) {
+      Taro.showToast({ title: '已超时，无法确认', icon: 'none' });
       return;
     }
-    confirmQueue(queueId);
+    store.confirmQueue(queueId);
     console.info('[Confirm] Confirmed:', queueId);
     Taro.showToast({ title: '上车成功！准时赴约哦', icon: 'success' });
   };
@@ -94,7 +69,7 @@ const ConfirmPage: React.FC = () => {
       content: '放弃后需要重新排队，确定吗？',
       success: (res) => {
         if (res.confirm) {
-          cancelQueue(queueId);
+          store.cancelQueue(queueId);
           console.info('[Confirm] Cancelled:', queueId);
           Taro.showToast({ title: '已放弃', icon: 'none' });
         }
@@ -102,6 +77,47 @@ const ConfirmPage: React.FC = () => {
     });
   };
 
+  const handleArrive = () => {
+    if (queue.status !== 'confirmed') {
+      Taro.showToast({ title: '当前状态不可到店', icon: 'none' });
+      return;
+    }
+    Taro.showModal({
+      title: '确认到店？',
+      content: '请在到达门店后点击，方便 DM 开本准备',
+      confirmText: '我已到店',
+      success: (res) => {
+        if (res.confirm) {
+          store.arriveQueue(queueId);
+          console.info('[Confirm] Arrived:', queueId);
+          Taro.showToast({ title: '签到成功！', icon: 'success' });
+        }
+      }
+    });
+  };
+
+  const companionCount = 1 + (queue.bringFriend ? queue.friendCount : 0);
+
+  // 已到店状态
+  if (queue.status === 'arrived') {
+    return (
+      <View className={styles.page}>
+        <View className={styles.card}>
+          <View className={styles.arrivedState}>
+            <Text className={styles.confirmedIcon}>✅</Text>
+            <Text className={styles.arrivedTitle}>已到店</Text>
+            <Text className={styles.confirmedDesc}>
+              到店时间：{queue.arrivedAt}
+            </Text>
+          </View>
+        </View>
+
+        <AppointmentInfo game={game} companionCount={companionCount} />
+      </View>
+    );
+  }
+
+  // 已确认 - 赴约状态
   if (queue.status === 'confirmed') {
     return (
       <View className={styles.page}>
@@ -113,33 +129,18 @@ const ConfirmPage: React.FC = () => {
           </View>
         </View>
 
-        <View className={styles.card}>
-          <Text className={styles.cardTitle}>局内信息</Text>
-          <View className={styles.infoRow}>
-            <Text className={styles.infoLabel}>剧本</Text>
-            <Text className={styles.infoValue}>{game.scriptName}</Text>
-          </View>
-          <View className={styles.infoRow}>
-            <Text className={styles.infoLabel}>门店</Text>
-            <Text className={styles.infoValue}>{game.storeName}</Text>
-          </View>
-          <View className={styles.infoRow}>
-            <Text className={styles.infoLabel}>开本时间</Text>
-            <Text className={styles.infoValue}>{game.expectedStartTime}</Text>
-          </View>
-          <View className={styles.infoRow}>
-            <Text className={styles.infoLabel}>DM</Text>
-            <Text className={styles.infoValue}>{game.dmName}</Text>
-          </View>
-          <View className={styles.infoRow}>
-            <Text className={styles.infoLabel}>价位</Text>
-            <Text className={styles.infoValue}>¥{game.pricePerPerson}/人</Text>
+        <AppointmentInfo game={game} companionCount={companionCount} />
+
+        <View className={styles.bottomBar}>
+          <View className={styles.arriveBtn} onClick={handleArrive}>
+            <Text className={styles.arriveBtnText}>我已到店，点我签到</Text>
           </View>
         </View>
       </View>
     );
   }
 
+  // 已过期 / 已放弃
   if (queue.status === 'expired' || queue.status === 'cancelled') {
     return (
       <View className={styles.page}>
@@ -176,6 +177,7 @@ const ConfirmPage: React.FC = () => {
     );
   }
 
+  // 待确认
   return (
     <View className={styles.page}>
       <View className={countdown <= 60 ? styles.countdownHeroUrgent : styles.countdownHero}>
@@ -226,16 +228,16 @@ const ConfirmPage: React.FC = () => {
           <Text className={styles.infoLabel}>称呼</Text>
           <Text className={styles.infoValue}>{queue.nickname}</Text>
         </View>
-        <View className={styles.infoRow}>
-          <Text className={styles.infoLabel}>联系方式</Text>
-          <Text className={styles.infoValue}>{queue.contact}</Text>
-        </View>
         {queue.bringFriend && (
           <View className={styles.infoRow}>
             <Text className={styles.infoLabel}>带朋友</Text>
             <Text className={styles.infoValue}>{queue.friendCount}位</Text>
           </View>
         )}
+        <View className={styles.infoRow}>
+          <Text className={styles.infoLabel}>联系方式</Text>
+          <Text className={styles.infoValue}>{queue.contact}</Text>
+        </View>
       </View>
 
       <View className={styles.bottomBar}>
@@ -250,21 +252,79 @@ const ConfirmPage: React.FC = () => {
   );
 };
 
-function useQueueLive(store: ReturnType<typeof useGameStore>, queueId: string) {
-  const ref = useRef(store.getQueueById(queueId));
-  ref.current = store.getQueueById(queueId);
-  // 强制订阅 store 变化
-  const subscribeFn = store.getState;
-  void subscribeFn;
+function AppointmentInfo({ game, companionCount }: { game: QueueEntry['game']; companionCount: number }) {
+  return (
+    <View className={styles.card}>
+      <Text className={styles.cardTitle}>赴约信息</Text>
+
+      <View className={styles.appointmentItem}>
+        <View className={styles.appointmentIcon}>📍</View>
+        <View className={styles.appointmentBody}>
+          <Text className={styles.appointmentLabel}>门店地址</Text>
+          <Text className={styles.appointmentValue}>{game.storeName}</Text>
+          <Text className={styles.appointmentSub}>{game.storeAddress}</Text>
+        </View>
+      </View>
+
+      <View className={styles.appointmentItem}>
+        <View className={styles.appointmentIcon}>⏰</View>
+        <View className={styles.appointmentBody}>
+          <Text className={styles.appointmentLabel}>预计开本</Text>
+          <Text className={styles.appointmentValue}>{game.expectedStartTime}</Text>
+          <Text className={styles.appointmentSub}>建议提前15分钟到店</Text>
+        </View>
+      </View>
+
+      <View className={styles.appointmentItem}>
+        <View className={styles.appointmentIcon}>🎭</View>
+        <View className={styles.appointmentBody}>
+          <Text className={styles.appointmentLabel}>DM</Text>
+          <Text className={styles.appointmentValue}>{game.dmName}</Text>
+          <Text className={styles.appointmentSub}>{game.dmContact}</Text>
+        </View>
+      </View>
+
+      <View className={styles.appointmentItem}>
+        <View className={styles.appointmentIcon}>👥</View>
+        <View className={styles.appointmentBody}>
+          <Text className={styles.appointmentLabel}>同行人数</Text>
+          <Text className={styles.appointmentValue}>共 {companionCount} 人</Text>
+          <Text className={styles.appointmentSub}>
+            {companionCount === 1 ? '我一人' : `我 + ${companionCount - 1} 位朋友`}
+          </Text>
+        </View>
+      </View>
+
+      <View className={styles.appointmentItem}>
+        <View className={styles.appointmentIcon}>💰</View>
+        <View className={styles.appointmentBody}>
+          <Text className={styles.appointmentLabel}>预估费用</Text>
+          <Text className={styles.appointmentValue}>
+            ¥{game.pricePerPerson * companionCount}
+          </Text>
+          <Text className={styles.appointmentSub}>
+            人均 ¥{game.pricePerPerson} × {companionCount}人
+          </Text>
+        </View>
+      </View>
+    </View>
+  );
+}
+
+function useLiveQueue(store: ReturnType<typeof useGameStore>, queueId: string) {
+  const [queue, setQueue] = useState<QueueEntry | undefined>(
+    store.getState().queues.find((q) => q.id === queueId)
+  );
+
   useEffect(() => {
     const unsubscribe = store.subscribe(() => {
-      // store 变化时更新 ref
       const q = store.getState().queues.find((x) => x.id === queueId);
-      if (q) ref.current = q;
+      setQueue(q);
     });
     return unsubscribe;
   }, [store, queueId]);
-  return ref;
+
+  return queue;
 }
 
 export default ConfirmPage;

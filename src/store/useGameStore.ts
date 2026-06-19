@@ -18,10 +18,14 @@ interface GameState {
   getFilteredGames: () => Game[];
   getMatchReasons: (game: Game) => MatchReason[];
   getSortedQueues: () => QueueEntry[];
+  getActiveConfirmingCount: () => number;
+  getFirstActiveConfirming: () => QueueEntry | undefined;
   joinQueue: (gameId: string, nickname: string, contact: string, bringFriend: boolean, friendCount: number) => QueueEntry | undefined;
   confirmQueue: (queueId: string) => void;
   cancelQueue: (queueId: string) => void;
   expireQueue: (queueId: string) => void;
+  arriveQueue: (queueId: string) => void;
+  checkAndExpireOverdue: () => number;
   getQueueById: (queueId: string) => QueueEntry | undefined;
   getGameById: (gameId: string) => Game | undefined;
 }
@@ -31,7 +35,8 @@ const defaultFilter: GameFilter = {
   arriveTime: '不限时间',
   priceRange: '不限价位',
   acceptBeginner: false,
-  preferences: []
+  preferences: [],
+  maxVacancy: 0
 };
 
 const timeOptionToRange = (opt: string): [number, number] | null => {
@@ -49,6 +54,21 @@ const startTimeToInt = (t: string): number => {
   const [h, m] = t.split(':');
   return parseInt(h, 10) * 100 + parseInt(m, 10);
 };
+
+const parseDate = (s: string): Date | null => {
+  if (!s) return null;
+  const d = new Date(s.replace(/\//g, '-'));
+  return isNaN(d.getTime()) ? null : d;
+};
+
+const getConfirmRemaining = (q: QueueEntry): number => {
+  if (q.status !== 'confirming') return 0;
+  const dl = parseDate(q.confirmDeadline);
+  if (!dl) return 0;
+  return Math.max(0, Math.floor((dl.getTime() - Date.now()) / 1000));
+};
+
+const CONFIRM_DURATION_SECONDS = 300;
 
 export const useGameStore = create<GameState>((set, get) => ({
   games: MOCK_GAMES,
@@ -86,6 +106,11 @@ export const useGameStore = create<GameState>((set, get) => ({
       if (filter.preferences.length > 0) {
         const hasMatch = filter.preferences.some((pref) => game.scriptType.includes(pref));
         if (!hasMatch) return false;
+      }
+
+      if (filter.maxVacancy > 0) {
+        const vacancy = game.totalPlayers - game.currentPlayers;
+        if (vacancy > filter.maxVacancy) return false;
       }
 
       return true;
@@ -164,18 +189,47 @@ export const useGameStore = create<GameState>((set, get) => ({
             : '无偏好命中'
     });
 
+    if (filter.maxVacancy > 0) {
+      const vacancy = game.totalPlayers - game.currentPlayers;
+      const vHit = vacancy <= filter.maxVacancy;
+      reasons.push({
+        key: 'soon',
+        label: '速开',
+        hit: vHit,
+        text: vHit
+          ? `马上能开 · 缺${vacancy}人（≤${filter.maxVacancy}）`
+          : `缺口较大 · 缺${vacancy}人`
+      });
+    }
+
     return reasons;
   },
 
   getSortedQueues: () => {
     const { queues } = get();
-    const order = ['confirming', 'pending', 'confirmed', 'expired', 'cancelled'];
+    const order: QueueEntry['status'][] = ['confirming', 'pending', 'confirmed', 'arrived', 'expired', 'cancelled'];
     return [...queues].sort((a, b) => {
       const ai = order.indexOf(a.status);
       const bi = order.indexOf(b.status);
       if (ai !== bi) return ai - bi;
+      if (a.status === 'confirming' && b.status === 'confirming') {
+        return getConfirmRemaining(a) - getConfirmRemaining(b);
+      }
       return a.createdAt < b.createdAt ? 1 : -1;
     });
+  },
+
+  getActiveConfirmingCount: () => {
+    const { queues } = get();
+    return queues.filter((q) => q.status === 'confirming' && getConfirmRemaining(q) > 0).length;
+  },
+
+  getFirstActiveConfirming: () => {
+    const { queues } = get();
+    const active = queues
+      .filter((q) => q.status === 'confirming' && getConfirmRemaining(q) > 0)
+      .sort((a, b) => getConfirmRemaining(a) - getConfirmRemaining(b));
+    return active[0];
   },
 
   joinQueue: (gameId, nickname, contact, bringFriend, friendCount) => {
@@ -192,7 +246,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 
     const now = new Date();
     const deadline = justFill
-      ? new Date(now.getTime() + 5 * 60 * 1000).toLocaleString('zh-CN')
+      ? new Date(now.getTime() + CONFIRM_DURATION_SECONDS * 1000).toLocaleString('zh-CN')
       : '';
 
     const newQueue: QueueEntry = {
@@ -205,7 +259,8 @@ export const useGameStore = create<GameState>((set, get) => ({
       bringFriend,
       friendCount,
       createdAt: now.toLocaleString('zh-CN'),
-      confirmDeadline: deadline
+      confirmDeadline: deadline,
+      arrivedAt: ''
     };
 
     console.info(
@@ -225,6 +280,15 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   confirmQueue: (queueId) => {
+    const q = get().queues.find((x) => x.id === queueId);
+    if (!q || q.status !== 'confirming') {
+      console.warn('[Store] confirmQueue: invalid status, queue:', queueId);
+      return;
+    }
+    if (getConfirmRemaining(q) <= 0) {
+      console.warn('[Store] confirmQueue: already expired, skip');
+      return;
+    }
     console.info('[Store] Confirm queue:', queueId);
     set((state) => ({
       queues: state.queues.map((q) =>
@@ -243,12 +307,50 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   expireQueue: (queueId) => {
+    const q = get().queues.find((x) => x.id === queueId);
+    if (!q) return;
+    if (q.status !== 'confirming') {
+      console.warn('[Store] expireQueue: status is', q.status, 'skip');
+      return;
+    }
     console.info('[Store] Expire queue:', queueId);
     set((state) => ({
       queues: state.queues.map((q) =>
         q.id === queueId ? { ...q, status: 'expired' as const } : q
       )
     }));
+  },
+
+  arriveQueue: (queueId) => {
+    const q = get().queues.find((x) => x.id === queueId);
+    if (!q || (q.status !== 'confirmed' && q.status !== 'arrived')) {
+      console.warn('[Store] arriveQueue: invalid status');
+      return;
+    }
+    if (q.status === 'arrived') return;
+    console.info('[Store] Arrive queue:', queueId);
+    set((state) => ({
+      queues: state.queues.map((q) =>
+        q.id === queueId
+          ? { ...q, status: 'arrived' as const, arrivedAt: new Date().toLocaleString('zh-CN') }
+          : q
+      )
+    }));
+  },
+
+  checkAndExpireOverdue: () => {
+    const { queues, expireQueue } = get();
+    let expiredCount = 0;
+    queues.forEach((q) => {
+      if (q.status === 'confirming' && getConfirmRemaining(q) <= 0) {
+        expireQueue(q.id);
+        expiredCount++;
+      }
+    });
+    if (expiredCount > 0) {
+      console.info('[Store] checkAndExpireOverdue: expired', expiredCount);
+    }
+    return expiredCount;
   },
 
   getQueueById: (queueId) => {
@@ -259,3 +361,5 @@ export const useGameStore = create<GameState>((set, get) => ({
     return get().games.find((g) => g.id === gameId);
   }
 }));
+
+export { getConfirmRemaining, CONFIRM_DURATION_SECONDS };

@@ -22,6 +22,10 @@ const FindPage: React.FC = () => {
     setFilter({ preferences: newPrefs });
   };
 
+  const handleMaxVacancyChange = (val: number) => {
+    setFilter({ maxVacancy: val });
+  };
+
   return (
     <View className={styles.page}>
       <View className={styles.hero}>
@@ -35,11 +39,13 @@ const FindPage: React.FC = () => {
           arriveTime={filter.arriveTime}
           priceRange={filter.priceRange}
           acceptBeginner={filter.acceptBeginner}
+          maxVacancy={filter.maxVacancy}
           preferences={filter.preferences}
           onAreaChange={(v) => setFilter({ area: v })}
           onTimeChange={(v) => setFilter({ arriveTime: v })}
           onPriceChange={(v) => setFilter({ priceRange: v })}
           onBeginnerChange={(v) => setFilter({ acceptBeginner: v })}
+          onMaxVacancyChange={handleMaxVacancyChange}
           onPreferenceToggle={handlePreferenceToggle}
         />
       </View>
