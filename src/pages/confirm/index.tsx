@@ -8,14 +8,12 @@ import styles from './index.module.scss';
 const ConfirmPage: React.FC = () => {
   const router = useRouter();
   const store = useGameStore();
-  const [queueId, setQueueId] = useState('');
+  const queueId = router.params.id || '';
 
   useEffect(() => {
-    const id = router.params.id || '';
-    setQueueId(id);
-    console.info('[Confirm] Queue ID:', id);
+    console.info('[Confirm] Queue ID:', queueId);
     store.checkAndExpireOverdue();
-  }, [router.params.id, store]);
+  }, [queueId, store]);
 
   const queue = useLiveQueue(store, queueId);
 
@@ -63,18 +61,22 @@ const ConfirmPage: React.FC = () => {
   };
 
   const handleGiveUp = () => {
-    if (queue.status !== 'confirming') {
+    if (queue.status !== 'confirming' && queue.status !== 'pending') {
       Taro.showToast({ title: '该记录已无法操作', icon: 'none' });
       return;
     }
+    const title = queue.status === 'pending' ? '取消排队？' : '确认放弃？';
+    const content = queue.status === 'pending'
+      ? '取消后需要重新排队，确定吗？'
+      : '放弃后需要重新排队，确定吗？';
     Taro.showModal({
-      title: '确认放弃？',
-      content: '放弃后需要重新排队，确定吗？',
+      title,
+      content,
       success: (res) => {
         if (res.confirm) {
           store.cancelQueue(queueId);
           console.info('[Confirm] Cancelled:', queueId);
-          Taro.showToast({ title: '已放弃', icon: 'none' });
+          Taro.showToast({ title: '已取消', icon: 'none' });
         }
       }
     });
@@ -374,15 +376,18 @@ function AppointmentInfo({ game, companionCount }: { game: QueueEntry['game']; c
 }
 
 function useLiveQueue(store: ReturnType<typeof useGameStore>, queueId: string) {
-  const [queue, setQueue] = useState<QueueEntry | undefined>(
+  const [queue, setQueue] = useState<QueueEntry | undefined>(() =>
     store.getState().queues.find((q) => q.id === queueId)
   );
 
   useEffect(() => {
-    const unsubscribe = store.subscribe(() => {
+    const fetchQueue = () => {
       const q = store.getState().queues.find((x) => x.id === queueId);
       setQueue(q);
-    });
+    };
+
+    fetchQueue();
+    const unsubscribe = store.subscribe(fetchQueue);
     return unsubscribe;
   }, [store, queueId]);
 

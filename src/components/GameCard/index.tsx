@@ -13,7 +13,7 @@ const GameCard: React.FC<GameCardProps> = ({ game, onClick }) => {
   const vacancy = game.totalPlayers - game.currentPlayers;
   const getMatchReasons = useGameStore((s) => s.getMatchReasons);
   const filter = useGameStore((s) => s.filter);
-  const reasons = useMemo(() => getMatchReasons(game), [game, getMatchReasons]);
+  const reasons = useMemo(() => getMatchReasons(game), [game, getMatchReasons, filter]);
   const hitReasons = reasons.filter((r) => r.hit);
 
   const displayReasons = useMemo(() => {
